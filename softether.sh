@@ -36,20 +36,12 @@ dhcp-option=tap_soft,3,10.121.20.1
 dhcp-option=option:dns-server,1.1.1.1,8.8.8.8,10.121.20.1
 " >> /etc/dnsmasq.conf
 echo "
-dhcp-range=$(prefix)100, $(prefix)1ff, 80, 12h
+dhcp-range=$prefix"100", $prefix"1ff", 80, 12h
 " >> /etc/dnsmasq.conf
 echo "
 enable-ra
 dhcp-authoritative
 " >> /etc/dnsmasq.conf
-
-# add dnsmasq rule to firewall
-iptables -D INPUT -i tap_soft -p udp --dport=67 -j ACCEPT
-ip6tables -D INPUT -i tap_soft -p udp --dport=547 -j ACCEPT
-iptables -I INPUT -i tap_soft -p udp --dport=67 -j ACCEPT
-ip6tables -I INPUT -i tap_soft -p udp --dport=547 -j ACCEPT
-service iptables save
-service ip6tables save
 
 # enable ipv4 & ipv6 ipforwarding
 echo 'net.ipv4.ip_forward = 1' | sudo tee -a /etc/sysctl.conf
@@ -68,18 +60,24 @@ ExecStart=$INSTALL_PATH/vpnserver/vpnserver start
 ExecStartPost=/bin/sleep 1
 ExecStartPost=-/sbin/ip address add $TAP_IPV4 dev tap_soft
 ExecStartPost=-/sbin/ip address add $TAP_IPV6 dev tap_soft
-ExecStartPost=iptables -I FORWARD -i tap_soft -j ACCEPT; iptables -I FORWARD -o tap_soft -j ACCEPT; ip6tables -I FORWARD -i tap_soft -j ACCEPT; ip6tables -I FORWARD -o tap_soft -j ACCEPT; iptables -t nat -A POSTROUTING -o ens3 -j MASQUERADE
+ExecStartPost=iptables -I INPUT -i tap_soft -p udp --dport=67 -j ACCEPT; ip6tables -I INPUT -i tap_soft -p udp --dport=547 -j ACCEPT; iptables -I FORWARD -i tap_soft -j ACCEPT; iptables -I FORWARD -o tap_soft -j ACCEPT; ip6tables -I FORWARD -i tap_soft -j ACCEPT; ip6tables -I FORWARD -o tap_soft -j ACCEPT; iptables -t nat -A POSTROUTING -o ens3 -j MASQUERADE
 ExecStartPost=-/usr/bin/systemctl restart dnsmasq
 ExecStop=$INSTALL_PATH/vpnserver/vpnserver stop
-ExecStopPost=iptables -D FORWARD -i tap_soft -j ACCEPT; iptables -D FORWARD -o tap_soft -j ACCEPT; ip6tables -D FORWARD -i tap_soft -j ACCEPT; ip6tables -D FORWARD -o tap_soft -j ACCEPT; iptables -t nat -D POSTROUTING -o ens3 -j MASQUERADE
+ExecStopPost=iptables -D INPUT -i tap_soft -p udp --dport=67 -j ACCEPT; ip6tables -D INPUT -i tap_soft -p udp --dport=547 -j ACCEPT; iptables -D FORWARD -i tap_soft -j ACCEPT; iptables -D FORWARD -o tap_soft -j ACCEPT; ip6tables -D FORWARD -i tap_soft -j ACCEPT; ip6tables -D FORWARD -o tap_soft -j ACCEPT; iptables -t nat -D POSTROUTING -o ens3 -j MASQUERADE
 Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
 " > /usr/lib/systemd/system/softether.service
+echo
+echo "Starting SoftEther VPN Server ..."
+$INSTALL_PATH/vpnserver/vpnserver start
+echo
+echo "Please use SoftEther VPN Server Manager to configure."
+read -p "Press any key to continue..."
+echo "Restarting VPN Server ..."
+$INSTALL_PATH/vpnserver/vpnserver stop
 systemctl enable softether
 systemctl start softether
 echo
 echo Success!
-echo
-echo Please use SoftEther VPN Server Manager to configure.
