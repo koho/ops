@@ -51,7 +51,7 @@ echo 'net.ipv6.conf.all.forwarding = 1' | sudo tee -a /etc/sysctl.conf
 echo 'net.ipv6.conf.all.proxy_ndp = 1' | sudo tee -a /etc/sysctl.conf
 sysctl -p
 echo "Installing ndppd ..."
-git clone https://github.com/DanielAdolfsson/ndppd.git /tmp
+git clone https://github.com/DanielAdolfsson/ndppd.git /tmp/ndppd
 pushd /tmp/ndppd
 make
 make install
