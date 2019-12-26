@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
+
+# Config
 V2_CONFIG=/etc/v2ray/config.json
 FULLCHAIN_FILE=/etc/fullchain.pem
 KEY_FILE=/etc/privkey.pem
 V2_PORT=18000
+
+set -e
 echo Installing V2Ray ...
 curl -L -s https://install.direct/go.sh | bash
 yum install python2 -y
