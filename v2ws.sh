@@ -9,8 +9,9 @@ V2_PORT=18000
 set -e
 echo Installing V2Ray ...
 curl -L -s https://install.direct/go.sh | bash
+echo Updating V2Ray config file ...
 yum install python2 -y
-python -c "import json;f=open('$V2_CONFIG');conf=json.load(f);f.close();conf['inbounds'][0]['port']=$V2_PORT;conf['inbounds'][0]['streamSettings']={'network': 'ws', 'wsSettings': {'path': '/ws'}};f=open('$V2_CONFIG','w');json.dump(conf,f,indent=2);f.close()"
+python2 -c "import json;f=open('$V2_CONFIG');conf=json.load(f);f.close();conf['inbounds'][0]['port']=$V2_PORT;conf['inbounds'][0]['streamSettings']={'network': 'ws', 'wsSettings': {'path': '/ws'}};f=open('$V2_CONFIG','w');json.dump(conf,f,indent=2);f.close()"
 systemctl enable v2ray
 echo Installing nginx ...
 sudo yum install yum-utils -y
@@ -32,14 +33,14 @@ module_hotfixes=true" > /etc/yum.repos.d/nginx.repo
 sudo yum-config-manager --enable nginx-mainline
 sudo yum install nginx -y
 systemctl enable nginx
-echo -n Input your domain name:
+echo -n [*] Input your domain name:
 read -r domain
-echo -n Input your Ali_Key:
+echo -n [*] Input your Ali_Key:
 read -r key
-echo -n Input your Ali_Secret:
+echo -n [*] Input your Ali_Secret:
 read -r secret
-export Ali_Key=$key
-export Ali_Secret=$secret
+if [ "$key" ]; then export Ali_Key="$key"; fi
+if [ "$secret" ]; then export Ali_Secret="$secret"; fi
 echo Getting certificate ...
 curl https://get.acme.sh | sh
 /root/.acme.sh/acme.sh --issue --dns dns_ali -d $domain
