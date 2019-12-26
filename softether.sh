@@ -72,6 +72,8 @@ WantedBy=multi-user.target
 echo
 echo "Starting SoftEther VPN Server ..."
 $INSTALL_PATH/vpnserver/vpnserver start
+iptables -I INPUT -p tcp --dport=5555 -j ACCEPT
+ip6tables -I INPUT -p tcp --dport=5555 -j ACCEPT
 echo
 echo "Please use SoftEther VPN Server Manager to configure."
 read -p "Press any key to continue..."
@@ -79,5 +81,7 @@ echo "Restarting VPN Server ..."
 $INSTALL_PATH/vpnserver/vpnserver stop
 systemctl enable softether
 systemctl start softether
+iptables -D INPUT -p tcp --dport=5555 -j ACCEPT
+ip6tables -D INPUT -p tcp --dport=5555 -j ACCEPT
 echo
 echo Success!
