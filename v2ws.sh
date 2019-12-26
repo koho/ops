@@ -5,6 +5,7 @@ KEY_FILE=/etc/privkey.pem
 V2_PORT=18000
 echo Installing V2Ray ...
 bash <(curl -L -s https://install.direct/go.sh)
+yum install python -y
 python -c "import json;f=open('$V2_CONFIG');conf=json.load(f);f.close();conf['inbounds'][0]['port']=$V2_PORT;conf['inbounds'][0]['streamSettings']={'network': 'ws', 'wsSettings': {'path': '/ws'}};f=open('$V2_CONFIG','w');json.dump(conf,f,indent=2);f.close()"
 systemctl enable v2ray
 echo Installing nginx ...
