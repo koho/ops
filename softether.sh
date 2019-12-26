@@ -103,7 +103,7 @@ ConditionPathExists=!$INSTALL_PATH/vpnserver/do_not_run
 Type=forking
 EnvironmentFile=-$INSTALL_PATH/vpnserver
 ExecStart=$INSTALL_PATH/vpnserver/vpnserver start
-ExecStartPost=/bin/sleep 1
+ExecStartPost=/bin/sleep 10
 ExecStartPost=-/sbin/ip address add $TAP_IPV4 dev $tap_soft
 ExecStartPost=-/sbin/ip address add $TAP_IPV6 dev $tap_soft
 ExecStartPost=/usr/sbin/iptables -I INPUT -i $tap_soft -p udp --dport=67 -j ACCEPT
@@ -114,6 +114,7 @@ ExecStartPost=/usr/sbin/ip6tables -I FORWARD -i $tap_soft -j ACCEPT
 ExecStartPost=/usr/sbin/ip6tables -I FORWARD -o $tap_soft -j ACCEPT
 ExecStartPost=/usr/sbin/iptables -t nat -A POSTROUTING -o ens3 -j MASQUERADE
 ExecStartPost=-/usr/bin/systemctl start dnsmasq
+ExecStartPost=-/usr/bin/systemctl start ndppd
 ExecStop=$INSTALL_PATH/vpnserver/vpnserver stop
 ExecStopPost=/usr/sbin/iptables -D INPUT -i $tap_soft -p udp --dport=67 -j ACCEPT
 ExecStopPost=/usr/sbin/ip6tables -D INPUT -i $tap_soft -p udp --dport=547 -j ACCEPT
