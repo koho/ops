@@ -12,6 +12,7 @@ curl -L -s https://install.direct/go.sh | bash
 echo Updating V2Ray config file ...
 yum install python2 -y
 python2 -c "import json;f=open('$V2_CONFIG');conf=json.load(f);f.close();conf['inbounds'][0]['port']=$V2_PORT;conf['inbounds'][0]['streamSettings']={'network': 'ws', 'wsSettings': {'path': '/ws'}};f=open('$V2_CONFIG','w');json.dump(conf,f,indent=2);f.close()"
+client_info=$(python2 -c "import json;f=open('$V2_CONFIG');conf=json.load(f);f.close();c=conf['inbounds'][0]['settings']['clients'][0];print('id: %s\nalterId: %d' % (c['id'],c['alterId']))")
 systemctl enable v2ray
 echo Installing nginx ...
 sudo yum install yum-utils -y
@@ -79,9 +80,24 @@ sudo sysctl -p
 echo Starting V2Ray ...
 systemctl restart v2ray
 systemctl restart nginx
-echo Success! Please reboot to take effect.
+echo
+echo Success!
+echo
+echo "----------------"
+echo "address: $domain"
+echo "port: 443"
+echo "$client_info"
+echo "network: ws"
+echo "security: tls"
+echo "path: /ws"
+echo "----------------"
+echo
 echo NOTE:
 echo 1. You can also configure nginx to redirect from 80 to 443. See /etc/nginx/conf.d/default.conf.
 echo Add the following line to the port 80 server:
+echo
 echo "return 301 https://\$host\$request_uri;"
+echo
 echo 2. Use CDN service to hide your IP address, such as Cloudflare CDN.
+echo
+echo "Please reboot to make all things fully functional!"
