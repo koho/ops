@@ -33,12 +33,13 @@ module_hotfixes=true" > /etc/yum.repos.d/nginx.repo
 sudo yum-config-manager --enable nginx-mainline
 sudo yum install nginx -y
 systemctl enable nginx
-echo -n [*] Input your domain name:
-read -r domain
-echo -n [*] Input your Ali_Key:
-read -r key
-echo -n [*] Input your Ali_Secret:
-read -r secret
+echo -n "[*] Input your domain name:"
+read domain
+test -n "$domain"
+echo -n "[*] Input your Ali_Key:"
+read key
+echo -n "[*] Input your Ali_Secret:"
+read secret
 if [ "$key" ]; then export Ali_Key="$key"; fi
 if [ "$secret" ]; then export Ali_Secret="$secret"; fi
 echo Getting certificate ...
