@@ -9,7 +9,7 @@ TAP_IPV6="$prefix""1/80"
 
 wget $VPN_URL -O /tmp/softether-vpnserver.tar.gz
 tar -zxvf /tmp/softether-vpnserver.tar.gz -C $INSTALL_PATH
-sudo yum install gcc make -y
+sudo yum install gcc make gcc-c++ git -y
 make -C /opt/vpnserver
 
 # Remove firewalld, install iptables
@@ -50,6 +50,35 @@ echo 'net.ipv4.ip_forward = 1' | sudo tee -a /etc/sysctl.conf
 echo 'net.ipv6.conf.all.forwarding = 1' | sudo tee -a /etc/sysctl.conf
 echo 'net.ipv6.conf.all.proxy_ndp = 1' | sudo tee -a /etc/sysctl.conf
 sysctl -p
+echo "Installing ndppd ..."
+git clone https://github.com/DanielAdolfsson/ndppd.git /tmp
+pushd /tmp/ndppd
+make
+make install
+popd
+echo "route-ttl 30000
+proxy ens3 {
+  router yes
+  timeout 500
+  ttl 30000
+  rule $TAP_IPV6 {
+    static
+  }
+}
+" > /etc/ndppd.conf
+echo "[Unit]
+Description=NDP Proxy Daemon
+After=network.target
+
+[Service]
+ExecStart=/usr/local/sbin/ndppd -d -p /var/run/ndppd/ndppd.pid
+Type=forking
+
+[Install]
+WantedBy=multi-user.target
+" > /usr/lib/systemd/system/ndppd.service
+systemctl enable ndppd
+systemctl start ndppd
 
 echo
 echo "Starting SoftEther VPN Server ..."
