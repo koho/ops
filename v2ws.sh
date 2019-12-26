@@ -81,4 +81,6 @@ systemctl restart nginx
 echo Success! Please reboot to take effect.
 echo NOTE:
 echo 1. You can also configure nginx to redirect from 80 to 443. See /etc/nginx/conf.d/default.conf.
+echo Add the following line to the port 80 server:
+echo "return 301 https://\$host\$request_uri;"
 echo 2. Use CDN service to hide your IP address, such as Cloudflare CDN.
