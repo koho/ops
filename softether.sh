@@ -37,17 +37,34 @@ dhcp-option=option:dns-server,1.1.1.1,8.8.8.8,10.121.20.1
 " >> /etc/dnsmasq.conf
 echo "
 dhcp-range=$prefix"100", $prefix"1ff", 80, 12h
+dhcp-option=option6:dns-server,[2606:4700:4700::1111],[2606:4700:4700::1001]
 " >> /etc/dnsmasq.conf
 echo "
 enable-ra
 dhcp-authoritative
 " >> /etc/dnsmasq.conf
+sudo systemctl enable dnsmasq
 
 # enable ipv4 & ipv6 ipforwarding
 echo 'net.ipv4.ip_forward = 1' | sudo tee -a /etc/sysctl.conf
 echo 'net.ipv6.conf.all.forwarding = 1' | sudo tee -a /etc/sysctl.conf
+echo 'net.ipv6.conf.all.proxy_ndp = 1' | sudo tee -a /etc/sysctl.conf
 sysctl -p
 
+echo
+echo "Starting SoftEther VPN Server ..."
+$INSTALL_PATH/vpnserver/vpnserver start
+iptables -I INPUT -p tcp --dport=5555 -j ACCEPT
+ip6tables -I INPUT -p tcp --dport=5555 -j ACCEPT
+echo
+echo "Please use SoftEther VPN Server Manager to configure."
+read -p "Press any key to continue..."
+iptables -D INPUT -p tcp --dport=5555 -j ACCEPT
+ip6tables -D INPUT -p tcp --dport=5555 -j ACCEPT
+echo -n "Enter the local bridge interface name:"
+read if_name
+test -n "$if_name"
+tap_soft=tap_$if_name
 echo "[Unit]
 Description=SoftEther VPN Server
 After=network.target auditd.service
@@ -58,30 +75,32 @@ Type=forking
 EnvironmentFile=-$INSTALL_PATH/vpnserver
 ExecStart=$INSTALL_PATH/vpnserver/vpnserver start
 ExecStartPost=/bin/sleep 1
-ExecStartPost=-/sbin/ip address add $TAP_IPV4 dev tap_soft
-ExecStartPost=-/sbin/ip address add $TAP_IPV6 dev tap_soft
-ExecStartPost=iptables -I INPUT -i tap_soft -p udp --dport=67 -j ACCEPT; ip6tables -I INPUT -i tap_soft -p udp --dport=547 -j ACCEPT; iptables -I FORWARD -i tap_soft -j ACCEPT; iptables -I FORWARD -o tap_soft -j ACCEPT; ip6tables -I FORWARD -i tap_soft -j ACCEPT; ip6tables -I FORWARD -o tap_soft -j ACCEPT; iptables -t nat -A POSTROUTING -o ens3 -j MASQUERADE
-ExecStartPost=-/usr/bin/systemctl restart dnsmasq
+ExecStartPost=-/sbin/ip address add $TAP_IPV4 dev $tap_soft
+ExecStartPost=-/sbin/ip address add $TAP_IPV6 dev $tap_soft
+ExecStartPost=/usr/sbin/iptables -I INPUT -i $tap_soft -p udp --dport=67 -j ACCEPT
+ExecStartPost=/usr/sbin/ip6tables -I INPUT -i $tap_soft -p udp --dport=547 -j ACCEPT
+ExecStartPost=/usr/sbin/iptables -I FORWARD -i $tap_soft -j ACCEPT
+ExecStartPost=/usr/sbin/iptables -I FORWARD -o $tap_soft -j ACCEPT
+ExecStartPost=/usr/sbin/ip6tables -I FORWARD -i $tap_soft -j ACCEPT
+ExecStartPost=/usr/sbin/ip6tables -I FORWARD -o $tap_soft -j ACCEPT
+ExecStartPost=/usr/sbin/iptables -t nat -A POSTROUTING -o ens3 -j MASQUERADE
+ExecStartPost=-/usr/bin/systemctl start dnsmasq
 ExecStop=$INSTALL_PATH/vpnserver/vpnserver stop
-ExecStopPost=iptables -D INPUT -i tap_soft -p udp --dport=67 -j ACCEPT; ip6tables -D INPUT -i tap_soft -p udp --dport=547 -j ACCEPT; iptables -D FORWARD -i tap_soft -j ACCEPT; iptables -D FORWARD -o tap_soft -j ACCEPT; ip6tables -D FORWARD -i tap_soft -j ACCEPT; ip6tables -D FORWARD -o tap_soft -j ACCEPT; iptables -t nat -D POSTROUTING -o ens3 -j MASQUERADE
+ExecStopPost=/usr/sbin/iptables -D INPUT -i $tap_soft -p udp --dport=67 -j ACCEPT
+ExecStopPost=/usr/sbin/ip6tables -D INPUT -i $tap_soft -p udp --dport=547 -j ACCEPT
+ExecStopPost=/usr/sbin/iptables -D FORWARD -i $tap_soft -j ACCEPT
+ExecStopPost=/usr/sbin/iptables -D FORWARD -o $tap_soft -j ACCEPT
+ExecStopPost=/usr/sbin/ip6tables -D FORWARD -i $tap_soft -j ACCEPT
+ExecStopPost=/usr/sbin/ip6tables -D FORWARD -o $tap_soft -j ACCEPT
+ExecStopPost=/usr/sbin/iptables -t nat -D POSTROUTING -o ens3 -j MASQUERADE
 Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
 " > /usr/lib/systemd/system/softether.service
-echo
-echo "Starting SoftEther VPN Server ..."
-$INSTALL_PATH/vpnserver/vpnserver start
-iptables -I INPUT -p tcp --dport=5555 -j ACCEPT
-ip6tables -I INPUT -p tcp --dport=5555 -j ACCEPT
-echo
-echo "Please use SoftEther VPN Server Manager to configure."
-read -p "Press any key to continue..."
 echo "Restarting VPN Server ..."
 $INSTALL_PATH/vpnserver/vpnserver stop
 systemctl enable softether
 systemctl start softether
-iptables -D INPUT -p tcp --dport=5555 -j ACCEPT
-ip6tables -D INPUT -p tcp --dport=5555 -j ACCEPT
 echo
 echo Success!
