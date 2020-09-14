@@ -8,7 +8,7 @@ V2_PORT=18000
 
 set -e
 echo Installing V2Ray ...
-curl -L -s https://install.direct/go.sh | bash
+curl -L -s https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh | bash
 echo Updating V2Ray config file ...
 yum install python2 -y
 python2 -c "import json;f=open('$V2_CONFIG');conf=json.load(f);f.close();conf['inbounds'][0]['port']=$V2_PORT;conf['inbounds'][0]['streamSettings']={'network': 'ws', 'wsSettings': {'path': '/ws'}};f=open('$V2_CONFIG','w');json.dump(conf,f,indent=2);f.close()"
