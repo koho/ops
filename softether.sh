@@ -123,6 +123,8 @@ ExecStopPost=/usr/sbin/iptables -D FORWARD -o $tap_soft -j ACCEPT
 ExecStopPost=/usr/sbin/ip6tables -D FORWARD -i $tap_soft -j ACCEPT
 ExecStopPost=/usr/sbin/ip6tables -D FORWARD -o $tap_soft -j ACCEPT
 ExecStopPost=/usr/sbin/iptables -t nat -D POSTROUTING -o ens3 -j MASQUERADE
+ExecStopPost=-/sbin/ip address del $TAP_IPV4 dev $tap_soft
+ExecStopPost=-/sbin/ip address del $TAP_IPV6 dev $tap_soft
 Restart=on-failure
 
 [Install]
@@ -134,3 +136,8 @@ systemctl enable softether
 systemctl start softether
 echo
 echo Success!
+echo
+echo "Edit /etc/sysconfig/iptables to open additional ports, such as:"
+echo
+echo "-A INPUT -p tcp --dport 80 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT"
+echo
