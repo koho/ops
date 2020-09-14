@@ -57,8 +57,8 @@ echo "{
 }
 " > $V2_CONFIG
 yum install jq -y
-client_id=$(jq .inbounds[0].settings.clients[0].id -r < test.json)
-alter_id=$(jq .inbounds[0].settings.clients[0].alterId -r < test.json)
+client_id=$(jq .inbounds[0].settings.clients[0].id -r < $V2_CONFIG)
+alter_id=$(jq .inbounds[0].settings.clients[0].alterId -r < $V2_CONFIG)
 client_info="id: $client_id\nalterId: $alter_id"
 systemctl enable v2ray
 echo Installing nginx ...
