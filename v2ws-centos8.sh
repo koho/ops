@@ -46,12 +46,18 @@ if [ "$secret" ]; then export Ali_Secret="$secret"; fi
 echo Getting certificate ...
 curl https://get.acme.sh | sh
 /root/.acme.sh/acme.sh --issue --dns dns_ali -d $domain
-echo "server{
-    listen 443 ssl default_server;
-    listen [::]:443 ssl default_server;
+echo "upstream dns-backend {
+    server 127.0.0.1:8053;
+    keepalive 30;
+}
+
+server{
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
 
     ssl_certificate $FULLCHAIN_FILE;
     ssl_certificate_key $KEY_FILE;
+    ssl_protocols TLSv1.3 TLSv1.2;
 
     server_name $domain;
     root /usr/share/nginx/html;
@@ -64,6 +70,20 @@ echo "server{
       proxy_set_header Upgrade \$http_upgrade;
       proxy_set_header Connection \"upgrade\";
       proxy_set_header Host \$http_host;
+    }
+    
+    location /dns-query {
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header Host $http_host;
+      proxy_set_header X-NginX-Proxy true;
+      proxy_set_header Connection "";
+      proxy_http_version 1.1;
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_redirect off;
+      proxy_set_header        X-Forwarded-Proto $scheme;
+      proxy_read_timeout 86400;
+      proxy_pass http://dns-backend/dns-query;
     }
 }" > /etc/nginx/conf.d/v2ray.conf
 /root/.acme.sh/acme.sh --install-cert -d $domain --key-file $KEY_FILE --fullchain-file $FULLCHAIN_FILE --reloadcmd "systemctl restart nginx"
