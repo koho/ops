@@ -10,9 +10,56 @@ set -e
 echo Installing V2Ray ...
 curl -L -s https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh | bash
 echo Updating V2Ray config file ...
-yum install python2 -y
-python2 -c "import json;f=open('$V2_CONFIG');conf=json.load(f);f.close();conf['inbounds'][0]['port']=$V2_PORT;conf['inbounds'][0]['streamSettings']={'network': 'ws', 'wsSettings': {'path': '/ws'}};f=open('$V2_CONFIG','w');json.dump(conf,f,indent=2);f.close()"
-client_info=$(python2 -c "import json;f=open('$V2_CONFIG');conf=json.load(f);f.close();c=conf['inbounds'][0]['settings']['clients'][0];print('id: %s\nalterId: %d' % (c['id'],c['alterId']))")
+echo "{
+  \"outbounds\": [
+    {
+      \"protocol\": \"freedom\",
+      \"settings\": {}
+    },
+    {
+      \"tag\": \"blocked\",
+      \"protocol\": \"blackhole\",
+      \"settings\": {}
+    }
+  ],
+  \"inbounds\": [
+    {
+      \"streamSettings\": {
+        \"network\": \"ws\",
+        \"wsSettings\": {
+          \"path\": \"/ws\"
+        }
+      },
+      \"protocol\": \"vmess\",
+      \"port\": 18000,
+      \"settings\": {
+        \"clients\": [
+          {
+            \"alterId\": 64,
+            \"id\": \"`v2ctl uuid`\",
+            \"level\": 1
+          }
+        ]
+      }
+    }
+  ],
+  \"routing\": {
+    \"rules\": [
+      {
+        \"ip\": [
+          \"geoip:private\"
+        ],
+        \"type\": \"field\",
+        \"outboundTag\": \"blocked\"
+      }
+    ]
+  }
+}
+" > $V2_CONFIG
+yum install jq -y
+client_id=$(jq .inbounds[0].settings.clients[0].id -r < test.json)
+alter_id=$(jq .inbounds[0].settings.clients[0].alterId -r < test.json)
+client_info="id: $client_id\nalterId: $alter_id"
 systemctl enable v2ray
 echo Installing nginx ...
 sudo yum install yum-utils -y
@@ -115,7 +162,7 @@ echo
 echo "----------------"
 echo "address: $domain"
 echo "port: 443"
-echo "$client_info"
+echo -e "$client_info"
 echo "network: ws"
 echo "security: tls"
 echo "path: /ws"
