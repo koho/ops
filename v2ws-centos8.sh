@@ -84,8 +84,9 @@ systemctl enable nginx
 # Doh
 echo Installing DOH ...
 sudo yum install git golang make -y
-git clone https://github.com/m13253/dns-over-https
-pushd dns-over-https
+tmp_dir=$(mktemp -d)
+git clone https://github.com/m13253/dns-over-https $tmp_dir
+pushd $tmp_dir/dns-over-https
 sudo make install
 popd
 sudo systemctl start doh-server.service
