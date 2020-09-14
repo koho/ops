@@ -2,7 +2,7 @@
 set -e
 prefix=$(ip -6 route show dev ens3 | awk '{print $1}.0' | head -n 1 | sed 's#\/.*$##g')
 # Config
-VPN_URL=https://github.com/SoftEtherVPN/SoftEtherVPN_Stable/releases/download/v4.31-9727-beta/softether-vpnserver-v4.31-9727-beta-2019.11.18-linux-x64-64bit.tar.gz
+VPN_URL=https://github.com/SoftEtherVPN/SoftEtherVPN_Stable/releases/download/v4.34-9745-beta/softether-vpnserver-v4.34-9745-beta-2020.04.05-linux-x64-64bit.tar.gz
 INSTALL_PATH=/opt
 TAP_IPV4=10.121.20.1/24
 TAP_IPV6="$prefix""1/80"
