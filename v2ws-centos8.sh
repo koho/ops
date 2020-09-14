@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Config
-V2_CONFIG=/etc/v2ray/config.json
+V2_CONFIG=/usr/local/etc/v2ray/config.json
 FULLCHAIN_FILE=/etc/fullchain.pem
 KEY_FILE=/etc/privkey.pem
 V2_PORT=18000
