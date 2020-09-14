@@ -83,7 +83,7 @@ sudo yum install nginx -y
 systemctl enable nginx
 # Doh
 echo Installing DOH ...
-sudo yum install git golang -y
+sudo yum install git golang make -y
 git clone https://github.com/m13253/dns-over-https
 pushd dns-over-https
 sudo make install
