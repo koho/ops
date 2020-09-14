@@ -34,6 +34,15 @@ module_hotfixes=true" > /etc/yum.repos.d/nginx.repo
 sudo yum-config-manager --enable nginx-mainline
 sudo yum install nginx -y
 systemctl enable nginx
+# Doh
+echo Installing DOH ...
+sudo yum install git golang -y
+git clone https://github.com/m13253/dns-over-https
+pushd dns-over-https
+sudo make install
+popd
+sudo systemctl start doh-server.service
+sudo systemctl enable doh-server.service
 echo -n "[*] Input your domain name:"
 read domain
 test -n "$domain"
@@ -119,5 +128,7 @@ echo
 echo "return 301 https://\$host\$request_uri;"
 echo
 echo 2. Use CDN service to hide your IP address, such as Cloudflare CDN.
+echo
+echo 3. You can edit /etc/dns-over-https/doh-server.conf to change the upstream dns resolver.
 echo
 echo "Please reboot to make all things fully functional!"
