@@ -89,6 +89,7 @@ git clone https://github.com/m13253/dns-over-https $tmp_dir
 pushd $tmp_dir/dns-over-https
 sudo make install
 popd
+rm -rf $tmp_dir
 sudo systemctl start doh-server.service
 sudo systemctl enable doh-server.service
 echo -n "[*] Input your domain name:"
