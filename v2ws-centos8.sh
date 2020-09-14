@@ -86,7 +86,7 @@ echo Installing DOH ...
 sudo yum install git golang make -y
 tmp_dir=$(mktemp -d)
 git clone https://github.com/m13253/dns-over-https $tmp_dir
-pushd $tmp_dir/dns-over-https
+pushd $tmp_dir
 sudo make install
 popd
 rm -rf $tmp_dir
