@@ -45,12 +45,10 @@ echo
 echo "Starting SoftEther VPN Server ..."
 $INSTALL_PATH/vpnserver/vpnserver start
 iptables -I INPUT -p tcp --dport=5555 -j ACCEPT
-ip6tables -I INPUT -p tcp --dport=5555 -j ACCEPT
 echo
 echo "Please use SoftEther VPN Server Manager to configure."
 read -p "Press any key to continue..."
 iptables -D INPUT -p tcp --dport=5555 -j ACCEPT
-ip6tables -D INPUT -p tcp --dport=5555 -j ACCEPT
 echo -n "Enter the local bridge interface name:"
 read if_name
 test -n "$if_name"
@@ -71,14 +69,12 @@ ExecStartPost=/usr/sbin/iptables -I FORWARD -i $tap_soft -j ACCEPT
 ExecStartPost=/usr/sbin/iptables -I FORWARD -o $tap_soft -j ACCEPT
 ExecStartPost=/usr/sbin/iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
 ExecStartPost=-/usr/bin/systemctl start dnsmasq
-ExecStartPost=-/usr/bin/systemctl start ndppd
 ExecStop=$INSTALL_PATH/vpnserver/vpnserver stop
 ExecStopPost=/usr/sbin/iptables -D INPUT -i $tap_soft -p udp --dport=67 -j ACCEPT
 ExecStopPost=/usr/sbin/iptables -D FORWARD -i $tap_soft -j ACCEPT
 ExecStopPost=/usr/sbin/iptables -D FORWARD -o $tap_soft -j ACCEPT
 ExecStopPost=/usr/sbin/iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE
 ExecStopPost=-/sbin/ip address del $TAP_IPV4 dev $tap_soft
-ExecStopPost=-/sbin/ip address del $TAP_IPV6 dev $tap_soft
 Restart=on-failure
 
 [Install]
