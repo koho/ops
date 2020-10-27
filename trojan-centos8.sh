@@ -51,6 +51,7 @@ echo Getting certificate ...
 curl https://get.acme.sh | sh
 /root/.acme.sh/acme.sh --issue --dns dns_ali -d $domain
 
+[ ! -d "/etc/trojan-go" ] && mkdir /etc/trojan-go
 password=$(date +%s | sha256sum | base64 | head -c 16 ; echo)
 echo "{
     \"run_type\": \"server\",
