@@ -8,6 +8,7 @@ tmp_dir=$(mktemp -d)
 pushd $tmp_dir
 wget https://github.com/p4gefau1t/trojan-go/releases/download/v0.8.2/trojan-go-linux-amd64.zip -O trojan-go-linux-amd64.zip
 unzip trojan-go-linux-amd64.zip
+[ ! -d "/usr/share/trojan-go" ] && mkdir /usr/share/trojan-go
 cp *.dat /usr/share/trojan-go
 cp ./trojan-go /usr/bin
 cp ./example/trojan-go.service /etc/systemd/system
