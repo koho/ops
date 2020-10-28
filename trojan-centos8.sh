@@ -85,7 +85,7 @@ echo "{
     }
 }" > /etc/trojan-go/config.json
 echo "server {
-    listen       8008;
+    listen       8008 http2;
     server_name  localhost;
 
     location / {
