@@ -11,7 +11,19 @@ unzip trojan-go-linux-amd64.zip
 [ ! -d "/usr/share/trojan-go" ] && mkdir /usr/share/trojan-go
 cp *.dat /usr/share/trojan-go
 cp ./trojan-go /usr/bin
-cp ./example/trojan-go.service /etc/systemd/system
+echo "[Unit]
+Description=Trojan-Go - An unidentifiable mechanism that helps you bypass GFW
+Documentation=https://p4gefau1t.github.io/trojan-go/
+After=network.target nss-lookup.target
+
+[Service]
+ExecStart=/usr/bin/trojan-go -config /etc/trojan-go/config.json
+Restart=on-failure
+RestartSec=10s
+
+[Install]
+WantedBy=multi-user.target
+" > /etc/systemd/system/trojan-go.service
 systemctl enable trojan-go
 popd
 rm -rf $tmp_dir
