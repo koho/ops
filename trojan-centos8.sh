@@ -65,10 +65,23 @@ echo "{
     \"ssl\": {
         \"cert\": \"$FULLCHAIN_FILE\",
         \"key\": \"$KEY_FILE\",
-        \"fallback_port\": 80
+        \"fallback_addr\": \"127.0.0.1\",
+        \"fallback_port\": 8000
     }
 }" > /etc/trojan-go/config.json
-/root/.acme.sh/acme.sh --install-cert -d $domain --key-file $KEY_FILE --fullchain-file $FULLCHAIN_FILE --reloadcmd "systemctl restart trojan-go"
+echo "server {
+    listen 8000 ssl http2;
+    listen [::]:8000 ssl http2;
+
+    ssl_certificate $FULLCHAIN_FILE;
+    ssl_certificate_key $KEY_FILE;
+    ssl_protocols TLSv1.3 TLSv1.2;
+
+    server_name $domain;
+    root /usr/share/nginx/html;
+    index  index.html index.htm;
+}" > /etc/nginx/conf.d/https.conf
+/root/.acme.sh/acme.sh --install-cert -d $domain --key-file $KEY_FILE --fullchain-file $FULLCHAIN_FILE --reloadcmd "systemctl restart nginx; systemctl restart trojan-go"
 
 echo Enable http \& https service in firewall ...
 firewall-cmd --add-service=http --permanent
@@ -92,3 +105,9 @@ echo
 echo NOTE:
 echo
 echo "Please reboot to make all things fully functional!"
+
+echo "stream {
+    map $ssl_preread_server_name $backend_name {
+        www.aloop.run
+    }
+}"
