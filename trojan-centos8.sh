@@ -70,20 +70,37 @@ echo "{
     \"local_addr\": \"0.0.0.0\",
     \"local_port\": 443,
     \"remote_addr\": \"127.0.0.1\",
-    \"remote_port\": 80,
+    \"remote_port\": 8008,
     \"password\": [
         \"$password\"
     ],
     \"ssl\": {
         \"cert\": \"$FULLCHAIN_FILE\",
         \"key\": \"$KEY_FILE\",
+        \"alpn\": [
+            \"h2\"
+        ],
         \"fallback_addr\": \"127.0.0.1\",
-        \"fallback_port\": 8008
+        \"fallback_port\": 8009
     }
 }" > /etc/trojan-go/config.json
 echo "server {
-    listen 8008 ssl http2;
-    listen [::]:8008 ssl http2;
+    listen       8008;
+    server_name  localhost;
+
+    location / {
+        root   /usr/share/nginx/html;
+        index  index.html index.htm;
+    }
+
+    error_page   500 502 503 504  /50x.html;
+    location = /50x.html {
+        root   /usr/share/nginx/html;
+    }
+}" > /etc/nginx/conf.d/http.conf
+echo "server {
+    listen 8009 ssl http2;
+    listen [::]:8009 ssl http2;
 
     ssl_certificate $FULLCHAIN_FILE;
     ssl_certificate_key $KEY_FILE;
@@ -115,5 +132,9 @@ echo "password: $password"
 echo "----------------"
 echo
 echo NOTE:
+echo 1. You can also configure nginx to redirect from 80 to 443. See /etc/nginx/conf.d/default.conf.
+echo Add the following line to the port 80 server:
+echo
+echo "return 301 https://\$host\$request_uri;"
 echo
 echo "Please reboot to make all things fully functional!"
