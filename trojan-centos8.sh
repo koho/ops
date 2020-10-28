@@ -78,12 +78,12 @@ echo "{
         \"cert\": \"$FULLCHAIN_FILE\",
         \"key\": \"$KEY_FILE\",
         \"fallback_addr\": \"127.0.0.1\",
-        \"fallback_port\": 8000
+        \"fallback_port\": 8008
     }
 }" > /etc/trojan-go/config.json
 echo "server {
-    listen 8000 ssl http2;
-    listen [::]:8000 ssl http2;
+    listen 8008 ssl http2;
+    listen [::]:8008 ssl http2;
 
     ssl_certificate $FULLCHAIN_FILE;
     ssl_certificate_key $KEY_FILE;
