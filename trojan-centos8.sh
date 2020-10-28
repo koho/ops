@@ -105,9 +105,3 @@ echo
 echo NOTE:
 echo
 echo "Please reboot to make all things fully functional!"
-
-echo "stream {
-    map $ssl_preread_server_name $backend_name {
-        www.aloop.run
-    }
-}"
