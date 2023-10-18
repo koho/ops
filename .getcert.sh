@@ -23,4 +23,4 @@ CERT=$(openssl s_client -showcerts $FLAGS < /dev/null)
 sed -n '/-----BEGIN/,/-----END/p' <<<"$CERT" > $2
 NEW=$(sha256sum $2 | cut -d' ' -f1)
 shift 2
-[ "$OLD" == "$NEW" ] || $@
+[ "$OLD" == "$NEW" ] || "$@"
